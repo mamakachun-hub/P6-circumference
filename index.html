@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>保良局田家炳小學 - 計算圓周選擇題遊戲</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+HK:wght@400;500;700;900&display=swap');
+        body {
+            font-family: 'Noto Sans HK', sans-serif;
+            background-color: #f0fdf4; /* Light emerald tint */
+        }
+        .btn-option {
+            transition: all 0.2s ease-in-out;
+        }
+        .btn-option:active {
+            transform: scale(0.98);
+        }
+        @keyframes pulse-fast {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+        .timer-warning {
+            animation: pulse-fast 0.5s infinite;
+            background-color: #fee2e2 !important;
+            border-color: #ef4444 !important;
+            color: #dc2626 !important;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col text-gray-800">
+
+    <!-- App Container -->
+    <main class="flex-grow w-full max-w-4xl mx-auto p-4 sm:p-6 md:p-8 flex flex-col justify-between shadow-2xl bg-white sm:my-6 sm:rounded-3xl border-t-8 border-teal-600 relative overflow-hidden">
+        
+        <!-- Top Header Navigation -->
+        <header class="flex flex-wrap items-center justify-between pb-4 mb-4 border-b-2 border-gray-100 gap-2">
+            <!-- School Name & Title -->
+            <div class="flex items-center space-x-2">
+                <div class="bg-teal-600 text-white font-black text-xs sm:text-sm px-3 py-1.5 rounded-lg shadow-sm">
+                    保良局田家炳小學
+                </div>
+                <h1 class="text-base sm:text-xl font-bold text-teal-800 hidden sm:inline-block">
+                    數學科：計算圓周練習
+                </h1>
+            </div>
+
+            <!-- Header Game Controls (Visible during gameplay) -->
+            <div id="gameNavControls" class="hidden flex items-center space-x-2 sm:space-x-3 ml-auto">
+                <button onclick="confirmRestart()" title="重新開始" class="flex items-center space-x-1 bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold px-3 py-1.5 rounded-xl text-xs sm:text-sm transition border border-amber-300 shadow-sm active:scale-95">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    <span>重新開始</span>
+                </button>
+                <button onclick="confirmExit()" title="退出遊戲" class="flex items-center space-x-1 bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold px-3 py-1.5 rounded-xl text-xs sm:text-sm transition border border-rose-300 shadow-sm active:scale-95">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    <span>退出</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- 1. START SCREEN -->
+        <div id="startScreen" class="flex flex-col items-center justify-center flex-grow py-6 sm:py-10">
+            <div class="w-20 h-20 sm:w-24 sm:h-24 bg-teal-100 rounded-full flex items-center justify-center mb-6 text-teal-600 shadow-inner">
+                <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+            </div>
+            
+            <h2 class="text-2xl sm:text-4xl font-black text-teal-900 text-center mb-3">圓周計算小挑戰</h2>
+            <p class="text-sm sm:text-base text-teal-700 font-medium mb-6 text-center">熟背直徑 1 至 15 與圓周率 3.14 的乘積！</p>
+
+            <!-- Rules Card -->
+            <div class="bg-teal-50 border-2 border-teal-200 rounded-2xl p-5 sm:p-6 w-full max-w-lg mb-8 shadow-sm">
+                <h3 class="text-base sm:text-lg font-bold text-teal-800 mb-3 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 01-18 0 9 9 0 0118 0z"></path></svg>
+                    遊戲規則：
+                </h3>
+                <ul class="text-sm sm:text-base text-gray-700 space-y-2 pl-2">
+                    <li class="flex items-start"><span class="text-teal-500 mr-2">✦</span>每次隨機抽選 <strong>10 條題目</strong>。</li>
+                    <li class="flex items-start"><span class="text-teal-500 mr-2">✦</span>每題作答時間僅有 <strong>5 秒</strong>，逾時當錯。</li>
+                    <li class="flex items-start"><span class="text-teal-500 mr-2">✦</span>答對 <strong>7 條或以上</strong> 即可成功達標！</li>
+                    <li class="flex items-start"><span class="text-teal-500 mr-2">✦</span>圓周公式：<strong>圓周長 = 直徑 (d) × 3.14</strong></li>
+                </ul>
+            </div>
+
+            <button onclick="startGame()" class="w-full sm:w-2/3 max-w-md bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700 text-white font-black text-xl py-4 px-8 rounded-2xl shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0 text-center">
+                開始挑戰 🚀
+            </button>
+        </div>
+
+        <!-- 2. GAME PLAY SCREEN -->
+        <div id="gameScreen" class="hidden flex-col flex-grow justify-between">
+            
+            <!-- Game Top Status Bar -->
+            <div class="flex items-center justify-between mb-6 bg-slate-50 p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-sm">
+                <div class="flex items-center space-x-3">
+                    <span id="progressBadge" class="text-xs sm:text-sm font-bold bg-teal-100 text-teal-800 px-3.5 py-1.5 rounded-xl border border-teal-200">
+                        第 1 / 10 題
+                    </span>
+                    <span id="scoreBadge" class="text-xs sm:text-sm font-bold bg-emerald-100 text-emerald-800 px-3.5 py-1.5 rounded-xl border border-emerald-200">
+                        得分: 0
+                    </span>
+                </div>
+
+                <!-- Timer Indicator -->
+                <div id="timerBox" class="flex items-center space-x-2 bg-white px-3 sm:px-4 py-1.5 rounded-xl border-2 border-slate-300 shadow-inner transition-all">
+                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span class="text-xs text-gray-500 font-bold hidden sm:inline">剩餘時間:</span>
+                    <span id="timerText" class="text-xl font-black text-gray-800 w-6 text-center">5</span>
+                    <span class="text-xs text-gray-500">秒</span>
+                </div>
+            </div>
+
+            <!-- Question Box -->
+            <div class="my-auto py-4">
+                <div class="bg-gradient-to-b from-teal-50 to-white border-2 border-teal-200 rounded-3xl p-6 sm:p-10 text-center shadow-md relative">
+                    <span class="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-teal-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow-sm tracking-wider">
+                        請計算圓周長 (d × 3.14)
+                    </span>
+                    <div id="questionDisplay" class="text-4xl sm:text-6xl font-black text-slate-800 tracking-wider py-2">
+                        5 × 3.14
+                    </div>
+                </div>
+
+                <!-- 4 Choice Options Grid -->
+                <div id="optionsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-5 mt-6 sm:mt-8">
+                    <!-- Dynamic option buttons populated by JS -->
+                </div>
+            </div>
+
+            <!-- Bottom Progress Bar -->
+            <div class="w-full bg-gray-200 rounded-full h-2 mt-4 overflow-hidden">
+                <div id="progressBar" class="bg-teal-500 h-2 rounded-full transition-all duration-300" style="width: 10%"></div>
+            </div>
+        </div>
+
+        <!-- 3. RESULT SCREEN -->
+        <div id="resultScreen" class="hidden flex-col flex-grow py-2">
+            <h2 class="text-2xl sm:text-3xl font-black text-center text-teal-900 mb-4">挑戰完成！成績結算</h2>
+
+            <!-- Summary Stats Card -->
+            <div class="grid grid-cols-3 gap-2 sm:gap-4 mb-6 text-center">
+                <div class="bg-blue-50 p-3 sm:p-4 rounded-2xl border border-blue-100">
+                    <p class="text-xs sm:text-sm text-blue-600 font-bold mb-1">遊玩日期</p>
+                    <p id="resDate" class="text-xs sm:text-base font-extrabold text-gray-800">-</p>
+                </div>
+                <div class="bg-purple-50 p-3 sm:p-4 rounded-2xl border border-purple-100">
+                    <p class="text-xs sm:text-sm text-purple-600 font-bold mb-1">總耗時</p>
+                    <p id="resTime" class="text-xs sm:text-base font-extrabold text-gray-800">-</p>
+                </div>
+                <div class="bg-amber-50 p-3 sm:p-4 rounded-2xl border border-amber-100">
+                    <p class="text-xs sm:text-sm text-amber-600 font-bold mb-1">答對題數</p>
+                    <p id="resScore" class="text-xs sm:text-base font-extrabold text-gray-800">-</p>
+                </div>
+            </div>
+
+            <!-- Achievement Banner -->
+            <div id="achievementBanner" class="text-center py-5 px-4 rounded-2xl mb-6 border-4 shadow-sm">
+                <!-- Injected by JS -->
+            </div>
+
+            <!-- Mistakes Review Section -->
+            <div id="mistakesSection" class="hidden flex-col flex-grow mb-6 overflow-y-auto max-h-72 p-1">
+                <h3 class="text-base sm:text-lg font-bold text-red-600 mb-3 flex items-center border-b pb-2">
+                    <svg class="w-5 h-5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    錯題檢討與詳細解析
+                </h3>
+                <div id="mistakesList" class="space-y-3">
+                    <!-- Injected by JS -->
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row gap-3 mt-auto pt-2">
+                <button onclick="startGame()" class="flex-1 bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700 text-white font-bold text-lg py-3.5 px-6 rounded-2xl shadow-md transition active:scale-95 text-center">
+                    🔄 再試一次
+                </button>
+                <button onclick="showScreen('start')" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-lg py-3.5 px-6 rounded-2xl border border-gray-300 transition active:scale-95 text-center">
+                    🏠 返回主頁
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal Dialog for Exit / Restart Confirmation -->
+    <div id="confirmModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl border border-gray-100">
+            <h3 id="modalTitle" class="text-xl font-bold text-gray-800 mb-2">確定操作？</h3>
+            <p id="modalBody" class="text-sm text-gray-600 mb-6">目前的答題進度將不會儲存。</p>
+            <div class="flex space-x-3">
+                <button onclick="closeModal()" class="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-sm transition">取消</button>
+                <button id="modalConfirmBtn" onclick="" class="flex-1 py-2.5 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl text-sm transition">確定</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Game Constants & Predefined Data ---
+        const PI = 3.14;
+        const totalPoolSize = 15;
+        const questionsPerGame = 10;
+        const questionTimeLimit = 5; // seconds
+        const passMark = 7;
+
+        // Generate 15 reference questions (d = 1..15)
+        const allQuestions = Array.from({ length: totalPoolSize }, (_, i) => {
+            const d = i + 1;
+            const val = (d * PI).toFixed(2);
+            return {
+                d: d,
+                text: `${d} × 3.14`,
+                ans: val
+            };
+        });
+
+        // --- Game State Variables ---
+        let selectedQuestions = [];
+        let currentIndex = 0;
+        let score = 0;
+        let mistakes = []; // { text, userChoice, correctAns, d }
+        let timer = null;
+        let timeLeft = 0;
+        let isAnswered = false;
+        let startTime = null;
+
+        // --- DOM Elements ---
+        const screens = {
+            start: document.getElementById('startScreen'),
+            game: document.getElementById('gameScreen'),
+            result: document.getElementById('resultScreen')
+        };
+        const gameNavControls = document.getElementById('gameNavControls');
+        const progressBadge = document.getElementById('progressBadge');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const timerBox = document.getElementById('timerBox');
+        const timerText = document.getElementById('timerText');
+        const questionDisplay = document.getElementById('questionDisplay');
+        const optionsContainer = document.getElementById('optionsContainer');
+        const progressBar = document.getElementById('progressBar');
+        const confirmModal = document.getElementById('confirmModal');
+
+        // Shuffle utility
+        function shuffleArray(arr) {
+            let array = [...arr];
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // Screen switching helper
+        function showScreen(screenName) {
+            clearInterval(timer);
+            Object.values(screens).forEach(s => s.classList.add('hidden'));
+            screens[screenName].classList.remove('hidden');
+
+            if (screenName === 'game') {
+                gameNavControls.classList.remove('hidden');
+            } else {
+                gameNavControls.classList.add('hidden');
+            }
+        }
+
+        // --- Game Controller ---
+        function startGame() {
+            score = 0;
+            currentIndex = 0;
+            mistakes = [];
+            isAnswered = false;
+            startTime = new Date();
+
+            // Pick 10 random questions from the 15 available
+            selectedQuestions = shuffleArray(allQuestions).slice(0, questionsPerGame);
+
+            showScreen('game');
+            loadQuestion();
+        }
+
+        function generateDistractors(correctAnswer) {
+            let options = [correctAnswer];
+            let distractorsPool = allQuestions
+                .filter(q => q.ans !== correctAnswer)
+                .map(q => q.ans);
+            
+            distractorsPool = shuffleArray(distractorsPool);
+            
+            for (let i = 0; i < 3; i++) {
+                options.push(distractorsPool[i]);
+            }
+            return shuffleArray(options);
+        }
+
+        function loadQuestion() {
+            isAnswered = false;
+            const currentQ = selectedQuestions[currentIndex];
+
+            // Update UI
+            progressBadge.innerText = `第 ${currentIndex + 1} / ${questionsPerGame} 題`;
+            scoreBadge.innerText = `得分: ${score}`;
+            questionDisplay.innerText = currentQ.text;
+            progressBar.style.width = `${((currentIndex + 1) / questionsPerGame) * 100}%`;
+
+            // Reset Timer Styling
+            timerBox.classList.remove('timer-warning');
+
+            // Render 4 options
+            const choices = generateDistractors(currentQ.ans);
+            optionsContainer.innerHTML = '';
+
+            choices.forEach(val => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-option w-full bg-white border-2 border-gray-200 hover:border-teal-500 hover:bg-teal-50 text-gray-800 font-extrabold text-2xl sm:text-3xl py-4 sm:py-5 px-4 rounded-2xl shadow-sm focus:outline-none flex items-center justify-center';
+                btn.innerText = val;
+                btn.onclick = () => handleChoice(btn, val, currentQ);
+                optionsContainer.appendChild(btn);
+            });
+
+            startCountdown();
+        }
+
+        function startCountdown() {
+            clearInterval(timer);
+            timeLeft = questionTimeLimit;
+            timerText.innerText = timeLeft;
+
+            timer = setInterval(() => {
+                timeLeft--;
+                timerText.innerText = timeLeft;
+
+                if (timeLeft <= 2) {
+                    timerBox.classList.add('timer-warning');
+                }
+
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    handleTimeout();
+                }
+            }, 1000);
+        }
+
+        function handleTimeout() {
+            if (isAnswered) return;
+            isAnswered = true;
+
+            const currentQ = selectedQuestions[currentIndex];
+
+            // Record mistake (Timeout)
+            mistakes.push({
+                text: currentQ.text,
+                userChoice: '逾時未答',
+                correctAns: currentQ.ans,
+                d: currentQ.d
+            });
+
+            // Highlight correct answer with green outline
+            const buttons = optionsContainer.querySelectorAll('button');
+            buttons.forEach(btn => {
+                if (btn.innerText === currentQ.ans) {
+                    btn.classList.remove('border-gray-200', 'hover:border-teal-500', 'hover:bg-teal-50');
+                    btn.classList.add('bg-green-100', 'border-4', 'border-green-500', 'text-green-800');
+                } else {
+                    btn.classList.add('opacity-40');
+                }
+                btn.style.cursor = 'default';
+            });
+
+            setTimeout(nextQuestion, 1000);
+        }
+
+        function handleChoice(clickedBtn, selectedVal, currentQ) {
+            if (isAnswered) return;
+            isAnswered = true;
+            clearInterval(timer);
+
+            const isCorrect = (selectedVal === currentQ.ans);
+            const buttons = optionsContainer.querySelectorAll('button');
+
+            if (isCorrect) {
+                score++;
+                scoreBadge.innerText = `得分: ${score}`;
+                clickedBtn.classList.remove('border-gray-200', 'hover:border-teal-500', 'hover:bg-teal-50');
+                clickedBtn.classList.add('bg-green-500', 'border-green-600', 'text-white');
+            } else {
+                // Record mistake
+                mistakes.push({
+                    text: currentQ.text,
+                    userChoice: selectedVal,
+                    correctAns: currentQ.ans,
+                    d: currentQ.d
+                });
+
+                // Wrong button becomes Red
+                clickedBtn.classList.remove('border-gray-200', 'hover:border-teal-500', 'hover:bg-teal-50');
+                clickedBtn.classList.add('bg-red-500', 'border-red-600', 'text-white');
+
+                // Highlight Correct button with Green outline
+                buttons.forEach(btn => {
+                    if (btn.innerText === currentQ.ans) {
+                        btn.classList.remove('border-gray-200', 'hover:border-teal-500', 'hover:bg-teal-50');
+                        btn.classList.add('bg-green-100', 'border-4', 'border-green-500', 'text-green-800');
+                    }
+                });
+            }
+
+            buttons.forEach(btn => btn.style.cursor = 'default');
+
+            setTimeout(nextQuestion, 1000);
+        }
+
+        function nextQuestion() {
+            currentIndex++;
+            if (currentIndex >= questionsPerGame) {
+                endGame();
+            } else {
+                loadQuestion();
+            }
+        }
+
+        function endGame() {
+            clearInterval(timer);
+            const endTime = new Date();
+            const elapsedSecs = Math.max(1, Math.floor((endTime - startTime) / 1000));
+            const mins = Math.floor(elapsedSecs / 60);
+            const secs = elapsedSecs % 60;
+
+            const today = new Date();
+            const dateStr = `${today.getFullYear()}/${String(today.getMonth()+1).padStart(2,'0')}/${String(today.getDate()).padStart(2,'0')}`;
+
+            // Populate Stats
+            document.getElementById('resDate').innerText = dateStr;
+            document.getElementById('resTime').innerText = `${mins > 0 ? mins + '分 ' : ''}${secs}秒`;
+            document.getElementById('resScore').innerText = `${score} / ${questionsPerGame}`;
+
+            // Achievement Banner Logic
+            const banner = document.getElementById('achievementBanner');
+            if (score >= passMark) {
+                banner.className = 'text-center py-5 px-4 rounded-2xl mb-6 border-4 shadow-sm bg-emerald-50 border-emerald-400';
+                banner.innerHTML = `
+                    <div class="text-4xl mb-1">🏆</div>
+                    <h3 class="text-2xl sm:text-3xl font-black text-emerald-700">恭喜！成功達標！</h3>
+                    <p class="text-emerald-800 text-sm sm:text-base font-bold mt-1">你的計算非常快速準確！</p>
+                `;
+            } else {
+                banner.className = 'text-center py-5 px-4 rounded-2xl mb-6 border-4 shadow-sm bg-amber-50 border-amber-300';
+                banner.innerHTML = `
+                    <div class="text-4xl mb-1">💪</div>
+                    <h3 class="text-2xl sm:text-3xl font-black text-amber-700">再接再厲！</h3>
+                    <p class="text-amber-800 text-sm sm:text-base font-bold mt-1">多加背誦直徑 1-15 的圓周對照表，下次一定能達標！</p>
+                `;
+            }
+
+            // Mistakes Section Logic
+            const mistakesSection = document.getElementById('mistakesSection');
+            const mistakesList = document.getElementById('mistakesList');
+
+            if (mistakes.length > 0) {
+                mistakesSection.classList.remove('hidden');
+                mistakesList.innerHTML = mistakes.map(m => `
+                    <div class="bg-gray-50 border-l-4 border-red-400 p-3.5 rounded-r-xl text-sm">
+                        <div class="flex items-center justify-between font-bold text-gray-800 mb-1">
+                            <span>題目：${m.text}</span>
+                            <span class="text-xs px-2.5 py-0.5 bg-red-100 text-red-700 rounded-full">你的回答：${m.userChoice}</span>
+                        </div>
+                        <p class="text-green-700 font-bold mb-1">正確答案：${m.correctAns}</p>
+                        <p class="text-gray-600 text-xs bg-white p-2 rounded border border-gray-200">
+                            💡 <strong>計算解析：</strong> 直徑 ${m.d} × 圓周率 3.14 = <strong>${m.correctAns}</strong>
+                        </p>
+                    </div>
+                `).join('');
+            } else {
+                mistakesSection.classList.add('hidden');
+            }
+
+            showScreen('result');
+        }
+
+        // --- Modals & Confirmations ---
+        function confirmRestart() {
+            openModal('確定要重新開始？', '目前的答題紀錄將會重置並重新抽出 10 條題目。', () => {
+                closeModal();
+                startGame();
+            });
+        }
+
+        function confirmExit() {
+            openModal('確定要退出遊戲？', '未完成的遊戲進度將不會保留。', () => {
+                closeModal();
+                showScreen('start');
+            });
+        }
+
+        function openModal(title, body, confirmHandler) {
+            clearInterval(timer);
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalBody').innerText = body;
+            const btn = document.getElementById('modalConfirmBtn');
+            btn.onclick = confirmHandler;
+            confirmModal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            confirmModal.classList.add('hidden');
+            if (!isAnswered && !screens.game.classList.contains('hidden')) {
+                startCountdown(); // Resume countdown if returning to active game
+            }
+        }
+
+        // Initialize display
+        showScreen('start');
+    </script>
+</body>
+</html>
